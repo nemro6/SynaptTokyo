@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0addb55158803545b8d737b59e2aa3e, type: 3}
+  m_Name: Io
+  m_EditorClassIdentifier: 
+  characterName: "\u30A4\u30AA"
+  characterPortrait: {fileID: 0}
+  characterPrefab: {fileID: 3700553107755531634, guid: 37f1f516837b2ce448fcc84ed74dbf82, type: 3}
+  initialSkill: {fileID: 11400000, guid: 0d4f31e216b76094fb44bc8535a00d97, type: 2}
+  characterSkill: {fileID: 0}
+  moveSpeed: 5
+  maxHP: 100
+  shieldMax: 100
+  defense: 100
+  attack: 100
+  criticalRate: 0.1
+  projectileCount: 1
+  projectileSize: 1
+  duration: 1
+  energyEfficiency: 1
+  pierce: 0
+  bounceEnemy: 0
+  bounceWall: 0
+  itemPickupRange: 1
