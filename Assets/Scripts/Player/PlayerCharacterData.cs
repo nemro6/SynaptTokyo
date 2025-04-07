@@ -8,8 +8,8 @@ public class PlayerCharacterData : ScriptableObject
     public GameObject characterPrefab;       // 実際に使うプレイヤーのプレハブ
 
     [Header("スキル関連")]
-    public SkillData initialSkill;           // 初期武器
-    public SkillData characterSkill;         // キャラクタースキル（今後追加予定）
+    public WeaponData initialWeapon;          // 初期武器
+    public WeaponData characterSkill;         // キャラクタースキル（今後追加予定）
 
     [Header("ステータス")]
     public float moveSpeed = 5f;             // 移動速度

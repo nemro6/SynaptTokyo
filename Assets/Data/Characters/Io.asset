@@ -15,7 +15,7 @@ MonoBehaviour:
   characterName: "\u30A4\u30AA"
   characterPortrait: {fileID: 0}
   characterPrefab: {fileID: 3700553107755531634, guid: 37f1f516837b2ce448fcc84ed74dbf82, type: 3}
-  initialSkill: {fileID: 11400000, guid: 0d4f31e216b76094fb44bc8535a00d97, type: 2}
+  initialWeapon: {fileID: 11400000, guid: 4c555a0a60eadc94789d802aa2a2a6ff, type: 2}
   characterSkill: {fileID: 0}
   moveSpeed: 5
   maxHP: 100

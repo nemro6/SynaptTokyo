@@ -1,147 +1,122 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
+using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
 {
     [Header("キャラデータ")]
     public PlayerCharacterData characterData;
 
-    [Header("ステータス")]
-    private float currentHP;
-    private float currentShield;
-    private float moveSpeed;
+    [Header("移動")]
+    public float moveSpeed = 5f;
+    private Rigidbody2D rb;
 
-    [Header("エネルギー管理")]
-    public float initialEnergy = 0f;
-    public float initialEnergyMax = 100f;
-    public float energyRegenRate = 60f;
+    [Header("weapon発射")]
+    public WeaponData initialWeapon;
+    public Transform firePoint;
 
-    [Header("経験値")]
-    public int level = 1;
-    public int currentExp = 0;
-    public int expToNextLevel = 100;
+    private float currentEnergy = 0f;
 
     [Header("UI")]
     public Slider energySlider;
     public Slider expSlider;
-    public TextMeshProUGUI expText;
-    public TextMeshProUGUI levelText;
+    public TMPro.TextMeshProUGUI expText;
+    public TMPro.TextMeshProUGUI levelText;
+    public SkillChoiceUI skillChoiceUI; // 今後のweapon習得用UI
 
-    [Header("スキル関連")]
-    public Transform firePoint;
-    public List<SkillData> allSkills;
-    public SkillChoiceUI skillChoiceUI;
+    [Header("経験値とレベル")]
+    public int level = 1;
+    public int currentExp = 0;
+    public int expToNextLevel = 100;
 
     void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
+
         if (characterData != null)
         {
-            Debug.Log("StartでApplyCharacterDataを呼び出し！");
-            ApplyCharacterData(characterData);
+            moveSpeed = characterData.moveSpeed;
+            initialWeapon = characterData.initialWeapon;
         }
-        else
-        {
-            Debug.LogWarning("characterData が Start 時点で null です！");
-        }
+
+        UpdateLevelUI();
     }
 
     void Update()
     {
-        float moveX = Input.GetAxisRaw("Horizontal");
-        float moveY = Input.GetAxisRaw("Vertical");
-        Vector2 move = new Vector2(moveX, moveY).normalized;
+        Move();
 
-        Debug.Log($"移動入力: {move} | moveSpeed: {moveSpeed}");
-
-        transform.Translate(move * moveSpeed * Time.deltaTime);
-
-        if (initialEnergy < initialEnergyMax)
+        if (initialWeapon != null)
         {
-            initialEnergy += energyRegenRate * Time.deltaTime;
-            if (initialEnergy > initialEnergyMax) initialEnergy = initialEnergyMax;
-        }
+            currentEnergy += initialWeapon.baseEnergy * Time.deltaTime;
 
-        if (Input.GetKeyDown(KeyCode.Space) && initialEnergy >= initialEnergyMax && characterData.initialSkill != null)
-        {
-            FireSkill(characterData.initialSkill);
-            initialEnergy = 0f;
-        }
-
-        if (energySlider != null)
-            energySlider.value = initialEnergy / initialEnergyMax;
-
-        if (expSlider != null)
-        {
-            expSlider.value = (float)currentExp / expToNextLevel;
-            if (expText != null)
-                expText.text = $"{currentExp} / {expToNextLevel}";
-        }
-
-        if (levelText != null)
-            levelText.text = $"Lv {level}";
-    }
-
-    void ApplyCharacterData(PlayerCharacterData data)
-    {
-        currentHP = data.maxHP;
-        currentShield = data.shieldMax;
-        moveSpeed = data.moveSpeed;
-        initialEnergyMax = 100f * data.energyEfficiency;
-        energyRegenRate = 60f * data.energyEfficiency;
-
-        Debug.Log($"[ApplyCharacterData] {data.characterName} → moveSpeed = {moveSpeed}");
-    }
-
-    void FireSkill(SkillData skill)
-    {
-        if (skill.projectilePrefab == null || firePoint == null) return;
-        StartCoroutine(FireBurst(skill));
-    }
-
-    IEnumerator FireBurst(SkillData skill)
-    {
-        for (int i = 0; i < skill.shotCount; i++)
-        {
-            GameObject bullet = Instantiate(skill.projectilePrefab, firePoint.position, firePoint.rotation);
-            SkillProjectile sp = bullet.GetComponent<SkillProjectile>();
-            if (sp != null)
+            if (currentEnergy >= initialWeapon.baseEnergy)
             {
-                sp.speed = skill.projectileSpeed;
-                sp.lifeTime = skill.duration > 0 ? skill.duration : 2f;
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    Fire();
+                    currentEnergy = 0f;
+                }
             }
-            yield return new WaitForSeconds(0.1f);
+
+            if (energySlider != null)
+                energySlider.value = currentEnergy / initialWeapon.baseEnergy;
+        }
+    }
+
+    void Move()
+    {
+        Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
+        rb.velocity = input * moveSpeed;
+    }
+
+    void Fire()
+    {
+        if (initialWeapon.projectilePrefab != null && firePoint != null)
+        {
+            GameObject proj = Instantiate(initialWeapon.projectilePrefab, firePoint.position, firePoint.rotation);
+            WeaponProjectile wp = proj.GetComponent<WeaponProjectile>();
+            if (wp != null)
+            {
+                wp.Init(initialWeapon);
+            }
         }
     }
 
     public void GainExp(int amount)
     {
         currentExp += amount;
-
         while (currentExp >= expToNextLevel)
         {
             currentExp -= expToNextLevel;
             level++;
             expToNextLevel = Mathf.RoundToInt(expToNextLevel * 1.25f);
+            Debug.Log($"レベルアップ！現在レベル: {level}");
+        }
 
-            if (skillChoiceUI != null && allSkills.Count > 0)
-            {
-                List<SkillData> options = new List<SkillData>();
-                while (options.Count < 3 && options.Count < allSkills.Count)
-                {
-                    SkillData candidate = allSkills[Random.Range(0, allSkills.Count)];
-                    if (!options.Contains(candidate)) options.Add(candidate);
-                }
+        UpdateLevelUI();
+    }
 
-                skillChoiceUI.Init(this, options);
-            }
+    void UpdateLevelUI()
+    {
+        if (levelText != null)
+            levelText.text = $"Lv.{level}";
+
+        if (expSlider != null)
+        {
+            expSlider.maxValue = expToNextLevel;
+            expSlider.value = currentExp;
+        }
+
+        if (expText != null)
+        {
+            expText.text = $"{currentExp} / {expToNextLevel}";
         }
     }
 
-    public void AcquireSkill(SkillData skill)
+    public void AcquireWeapon(WeaponData weapon)
     {
-        allSkills.Add(skill);
+        Debug.Log($"weapon {weapon.weaponName} を習得しました！");
+        // 今後: リストに追加して自動発射 weapon に加えるなど
     }
 }

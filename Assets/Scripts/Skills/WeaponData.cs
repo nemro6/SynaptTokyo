@@ -1,15 +1,15 @@
-// Assets/Scripts/Skill/SkillDataBase.cs
 using UnityEngine;
 
-public enum SkillAttribute
+public enum WeaponAttribute
 {
     Kinetic, Plasma, Neural, EMP, Combustion
 }
 
-public abstract class SkillDataBase : ScriptableObject
+[CreateAssetMenu(menuName = "Weapons/WeaponData")]
+public class WeaponData : ScriptableObject
 {
-    public string skillName;
-    public SkillAttribute attribute;
+    public string weaponName;
+    public WeaponAttribute attribute;
     public int maxLevel;
 
     public float baseDamage;
@@ -20,9 +20,9 @@ public abstract class SkillDataBase : ScriptableObject
     public int wallBounce;
     public float duration;
     public float baseEnergy;
+    public int shotCount;
 
     public GameObject projectilePrefab;
 
-    // ƒXƒLƒ‹‚ª“G‚É–½’†‚µ‚½‚Æ‚«‚Ìˆ—
-    public abstract void OnHit(GameObject self, GameObject target);
+    public string effectProcessorClassName;
 }

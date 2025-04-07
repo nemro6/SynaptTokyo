@@ -5,38 +5,42 @@ using System.Collections.Generic;
 
 public class SkillChoiceUI : MonoBehaviour
 {
-    public GameObject panel;
-    public Button[] buttons;
-    private List<SkillData> options = new List<SkillData>();
+    public GameObject buttonPrefab; // UIボタンのプレハブ
+    public Transform buttonContainer;
+
     private PlayerController player;
 
-    public void Init(PlayerController playerRef, List<SkillData> skillOptions)
+    public void Init(PlayerController playerRef, List<WeaponData> weaponOptions)
     {
         player = playerRef;
-        options = skillOptions;
 
-        panel.SetActive(true);
-
-        for (int i = 0; i < buttons.Length; i++)
+        // 既存のボタンを削除
+        foreach (Transform child in buttonContainer)
         {
-            if (i < options.Count)
-            {
-                var skill = options[i];
-                buttons[i].gameObject.SetActive(true);
-                buttons[i].GetComponentInChildren<TextMeshProUGUI>().text = skill.skillName;
+            Destroy(child.gameObject);
+        }
 
-                int index = i; // クロージャー対策！
-                buttons[i].onClick.RemoveAllListeners();
-                buttons[i].onClick.AddListener(() =>
-                {
-                    player.AcquireSkill(skill);
-                    panel.SetActive(false);
-                });
-            }
-            else
+        // 新しいweaponの選択肢を追加
+        foreach (var weapon in weaponOptions)
+        {
+            GameObject buttonObj = Instantiate(buttonPrefab, buttonContainer);
+            TextMeshProUGUI label = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null)
+                label.text = weapon.weaponName;
+
+            Button button = buttonObj.GetComponent<Button>();
+            if (button != null)
             {
-                buttons[i].gameObject.SetActive(false);
+                button.onClick.AddListener(() => OnWeaponSelected(weapon));
             }
         }
+
+        gameObject.SetActive(true);
+    }
+
+    void OnWeaponSelected(WeaponData selected)
+    {
+        player.AcquireWeapon(selected);
+        gameObject.SetActive(false);
     }
 }
